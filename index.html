@@ -1,0 +1,453 @@
+<!--
+© YS Developers
+
+This software has been developed and provided by YS Developers
+for use with YT Music.
+
+Permission is hereby granted to any individual or organization
+to use, copy, and modify this code for personal or non-commercial purposes.
+
+Redistribution is allowed, provided that this notice remains intact
+and proper credit is given to YS Developers.
+
+Commercial use, including selling, licensing, or monetizing this code
+in any form, is strictly prohibited without prior written permission
+from YS Developers.
+
+All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT music</title><meta name="keywords" content="YT music, yossi tachover, מקצבים, יוסי טכובר, Yossi Tachover Music">
+<meta name="description" content="Official site for YT Music and Yossi Tachover (יוסי טכובר), specializing in professional rhythms (מקצבים) and musical arrangements.">
+    <link rel="icon" type="image/png" href="https://yt-music-2026.github.io/site/images/favicon.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;900&display=swap');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #010b1a;
+            font-family: 'Assistant', sans-serif;
+            touch-action: none; /* Prevents scrolling during touch interaction */
+        }
+
+        /* Starfield Background with Logo-specific radial depth */
+        #star-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: radial-gradient(circle at center, #0a2d4d 0%, #010b1a 100%);
+            cursor: crosshair;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none; /* Allows canvas interaction through the container */
+        }
+
+        .logo-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 60px;
+            width: 750px; 
+            height: 750px; 
+        }
+
+        /* Logo Rings - Initially Hidden */
+        .logo-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            border-radius: 50%;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2.5s ease, transform 3s cubic-bezier(0.165, 0.84, 0.44, 1); /* Made longer */
+        }
+
+        .ring-solid-cyan {
+            border: 8px solid #00f2fe; 
+            box-shadow: 0 0 80px rgba(0, 242, 254, 0.9), inset 0 0 50px rgba(0, 242, 254, 0.6);
+        }
+
+        .ring-dotted {
+            border-style: dotted;
+            border-width: 3px;
+        }
+
+        /* Waveform Visualizer */
+        .waveform {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; 
+            width: 110%; 
+            z-index: 4;
+            opacity: 0;
+            transition: opacity 2s ease; /* Made longer */
+        }
+
+        .wave-bar {
+            width: 5px; 
+            background: #2a415a;
+            border-radius: 4px;
+            height: 25px;
+            animation: pulse 1.2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { height: 20px; opacity: 0.3; }
+            50% { height: 140px; opacity: 0.9; }
+        }
+
+        .satellite {
+            position: absolute;
+            width: 18px; 
+            height: 18px;
+            background: #00f2fe;
+            border-radius: 50%;
+            box-shadow: 0 0 35px #00f2fe, 0 0 60px rgba(0, 242, 254, 0.7);
+            z-index: 6;
+            opacity: 0;
+            transition: opacity 2s ease; /* Made longer */
+        }
+
+        /* The YT Text */
+        .logo-text {
+            font-size: 320px; 
+            font-weight: 900;
+            display: flex;
+            align-items: flex-start; 
+            position: relative;
+            z-index: 10;
+            user-select: none;
+            filter: drop-shadow(0 0 30px rgba(0, 242, 254, 1)) 
+                    drop-shadow(0 0 70px rgba(0, 242, 254, 0.8));
+        }
+
+        .letter {
+            background-image: 
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
+                linear-gradient(180deg, #b0bdcc 0%, #7d93a8 35%, #4a637a 65%, #25394d 100%);
+            
+            background-blend-mode: overlay;
+            background-size: 150px 150px, 100% 100%;
+            
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            filter: blur(10px);
+            transition: opacity 2s ease, filter 1.5s ease; /* Made longer */
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            line-height: 1;
+        }
+
+        #char-y { 
+            margin-right: -15px;
+            /* Fixed clipping path for left corner of Y */
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        }
+        
+        #char-t { 
+            margin-left: -15px; 
+        }
+
+        .sharp {
+            opacity: 1 !important;
+            filter: blur(0px) brightness(1.2) contrast(1.2) !important;
+        }
+
+        .rings-visible { 
+            opacity: 1 !important; 
+            transform: translate(-50%, -50%) scale(1) !important;
+        }
+        
+        .active-ui {
+            opacity: 1 !important;
+        }
+
+        /* Portal Button */
+        .portal-btn {
+            pointer-events: auto; /* Ensures button remains clickable */
+            background: linear-gradient(90deg, #00f2fe 0%, #0891b2 100%);
+            color: white;
+            padding: 22px 65px; 
+            border-radius: 60px;
+            text-decoration: none;
+            font-size: 2rem; 
+            font-weight: bold;
+            display: flex;
+            flex-direction: row-reverse;
+            align-items: center;
+            gap: 15px;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 60px rgba(0, 242, 254, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Button Hover Effect */
+        .portal-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 90px rgba(0, 242, 254, 0.8);
+            filter: brightness(1.1);
+        }
+
+        .portal-btn:active {
+            transform: scale(0.98);
+        }
+
+        .portal-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -100%;
+            width: 100%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+        }
+
+        .portal-btn:hover::after {
+            left: 100%;
+        }
+
+        .portal-btn.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .arrow { 
+            font-size: 1.8rem; 
+            transform: rotate(-45deg); 
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .portal-btn:hover .arrow {
+            transform: rotate(-45deg) translateX(5px) translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="star-canvas"></canvas>
+    
+    <div class="container">
+        <div class="logo-wrapper">
+            <div class="satellite ui-element" style="left: -40px;"></div>
+            <div class="satellite ui-element" style="right: -40px;"></div>
+
+            <div class="waveform ui-element" id="waveform-container"></div>
+
+            <div class="logo-ring ring-solid-cyan" style="width: 480px; height: 480px;"></div>
+            <div class="logo-ring ring-dotted" style="width: 580px; height: 580px;"></div>
+            <div class="logo-ring ring-dotted" style="width: 680px; height: 680px; border-color: rgba(0, 242, 254, 0.08);"></div>
+            
+            <div class="logo-text">
+                <span id="char-y" class="letter">Y</span>
+                <span id="char-t" class="letter">T</span>
+            </div>
+        </div>
+
+        <a href="https://yt-music-2026.github.io/site/"  class="portal-btn" id="main-btn">
+            לאתר
+            <span class="arrow">↑</span>
+        </a>
+    </div>
+
+    <script>
+        const waveContainer = document.getElementById('waveform-container');
+        for (let i = 0; i < 44; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'wave-bar';
+            bar.style.animationDelay = `${Math.random() * 2}s`;
+            const baseHeight = 15 + Math.random() * 30;
+            bar.style.height = `${baseHeight}px`;
+            waveContainer.appendChild(bar);
+        }
+
+        const starCanvas = document.getElementById('star-canvas');
+        const sctx = starCanvas.getContext('2d');
+        let stars = [];
+        let flashers = []; // For the "flashing star" effect
+        let mouseX = 0;
+        let mouseY = 0;
+        let isPressed = false;
+        let currentParallaxInfluence = 0;
+
+        function initStars() {
+            starCanvas.width = window.innerWidth;
+            starCanvas.height = window.innerHeight;
+            stars = [];
+            // Expanded DJ Hues: Cyan, Electric Blue, Vivid Purple, Magenta, Neon Green
+            const djHues = [180, 200, 260, 290, 320, 140]; 
+
+            for (let i = 0; i < 280; i++) {
+                const isDj = Math.random() > 0.7; // 30% are now DJ style (more colors)
+                stars.push({
+                    x: Math.random() * starCanvas.width,
+                    y: Math.random() * starCanvas.height,
+                    size: Math.random() * 3.0 + 0.5, 
+                    opacity: Math.random() * 0.7 + 0.3,
+                    vx: (Math.random() - 0.5) * 0.12, 
+                    vy: (Math.random() - 0.5) * 0.12,
+                    twinkle: Math.random() * 0.01 + 0.005,
+                    parallaxFactor: Math.random() * 0.1 + 0.02,
+                    hue: isDj ? djHues[Math.floor(Math.random() * djHues.length)] : 210
+                });
+            }
+        }
+
+        function spawnFlash() {
+            // Add a flashing star that doesn't fly, just flares up
+            const djHues = [180, 290, 320];
+            flashers.push({
+                x: Math.random() * starCanvas.width,
+                y: Math.random() * starCanvas.height,
+                size: Math.random() * 4 + 2,
+                opacity: 0,
+                maxOpacity: 1,
+                life: 0,
+                speed: 0.01 + Math.random() * 0.02, // Slower flashing for "longer" feel
+                hue: djHues[Math.floor(Math.random() * djHues.length)]
+            });
+        }
+
+        function animateStars() {
+            sctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+            
+            const targetInfluence = isPressed ? 1 : 0;
+            currentParallaxInfluence += (targetInfluence - currentParallaxInfluence) * 0.1;
+
+            // Update Flashers (flashing stars)
+            flashers = flashers.filter(f => {
+                f.life += f.speed;
+                f.opacity = Math.sin(f.life * Math.PI); 
+                
+                sctx.fillStyle = `hsla(${f.hue}, 100%, 85%, ${f.opacity})`;
+                sctx.shadowBlur = 20 * f.opacity;
+                sctx.shadowColor = `hsla(${f.hue}, 100%, 60%, 1)`;
+                sctx.beginPath();
+                sctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+                sctx.fill();
+                
+                return f.life < 1;
+            });
+
+            // Update Static Stars
+            stars.forEach(s => {
+                let targetX = s.x + (mouseX * s.parallaxFactor * currentParallaxInfluence);
+                let targetY = s.y + (mouseY * s.parallaxFactor * currentParallaxInfluence);
+                
+                s.x += s.vx; 
+                s.y += s.vy;
+
+                if (s.y > starCanvas.height) s.y = 0;
+                if (s.y < 0) s.y = starCanvas.height;
+                if (s.x > starCanvas.width) s.x = 0;
+                if (s.x < 0) s.x = starCanvas.width;
+
+                s.opacity += s.twinkle;
+                if (s.opacity > 1 || s.opacity < 0.3) s.twinkle *= -1;
+
+                const brightness = 80 + (currentParallaxInfluence * 20);
+                sctx.fillStyle = `hsla(${s.hue}, 100%, ${brightness}%, ${s.opacity})`;
+                
+                sctx.beginPath();
+                sctx.arc(targetX, targetY, s.size, 0, Math.PI * 2);
+                sctx.fill();
+
+                if (s.size > 2) {
+                    sctx.shadowBlur = 8 + (currentParallaxInfluence * 15);
+                    sctx.shadowColor = `hsla(${s.hue}, 100%, 70%, ${0.4 * currentParallaxInfluence})`;
+                } else {
+                    sctx.shadowBlur = 0;
+                }
+            });
+            requestAnimationFrame(animateStars);
+        }
+
+        // Interaction Listeners
+        window.addEventListener('mousedown', () => isPressed = true);
+        window.addEventListener('mouseup', () => isPressed = false);
+        window.addEventListener('touchstart', (e) => {
+            isPressed = true;
+            updatePointerPosition(e.touches[0]);
+        });
+        window.addEventListener('touchend', () => isPressed = false);
+
+        function updatePointerPosition(e) {
+            mouseX = (e.clientX - window.innerWidth / 2);
+            mouseY = (e.clientY - window.innerHeight / 2);
+        }
+
+        window.addEventListener('mousemove', updatePointerPosition);
+        window.addEventListener('touchmove', (e) => updatePointerPosition(e.touches[0]));
+
+        // Spawn a flash every 2-4 seconds
+        setInterval(spawnFlash, 3000);
+
+        window.onload = () => {
+            initStars();
+            animateStars();
+
+            const y = document.getElementById('char-y');
+            const t = document.getElementById('char-t');
+            const btn = document.getElementById('main-btn');
+            const rings = document.querySelectorAll('.logo-ring');
+            const uiElements = document.querySelectorAll('.ui-element');
+
+            // Delayed entry for "longer" buildup
+            setTimeout(() => { y.classList.add('sharp'); }, 800);
+            setTimeout(() => { t.classList.add('sharp'); }, 1600);
+            
+            setTimeout(() => {
+                rings.forEach(r => r.classList.add('rings-visible'));
+                uiElements.forEach(el => el.classList.add('active-ui'));
+            }, 3000);
+            
+            setTimeout(() => {
+                btn.classList.add('visible');
+            }, 5000); // Portal button appears last after a long wait
+        };
+
+        window.addEventListener('resize', () => {
+            starCanvas.width = window.innerWidth;
+            starCanvas.height = window.innerHeight;
+            initStars();
+        });
+    </script>
+</body>
+</html>
